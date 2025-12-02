@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useState, useEffect, useRef } from 'react';
 import { TopBar } from '@/components/lecture/TopBar';
 import { ScreenPreview } from '@/components/lecture/ScreenPreview';
 import { LiveNotesPanel } from '@/components/lecture/LiveNotesPanel';
@@ -10,10 +10,13 @@ import { useVoiceRecognition } from '@/hooks/useVoiceRecognition';
 import { useTextToSpeech } from '@/hooks/useTextToSpeech';
 import { useLectureStore } from '@/hooks/useLectureStore';
 import { useToast } from '@/hooks/use-toast';
+import { useAINotesGenerator } from '@/hooks/useAINotesGenerator';
 
 const Index = () => {
   const { toast } = useToast();
   const [chatListening, setChatListening] = useState(false);
+  const pendingTranscriptRef = useRef<string>('');
+  const analysisIntervalRef = useRef<NodeJS.Timeout | null>(null);
   
   const {
     currentSession,
@@ -33,23 +36,63 @@ const Index = () => {
   const { isCapturing, currentFrame, startCapture, stopCapture } = useScreenCapture();
   const { speak, stop: stopSpeaking, isSpeaking } = useTextToSpeech();
 
-  // Convert transcript to bullet points
-  const processBulletPoint = useCallback((text: string) => {
-    // Split by sentences and create bullet points
-    const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 10);
-    sentences.forEach(sentence => {
-      const trimmed = sentence.trim();
-      if (trimmed) {
-        addBullet(trimmed);
-      }
+  // AI Notes Generator
+  const handleAIBullets = useCallback((bullets: string[]) => {
+    bullets.forEach(bullet => {
+      addBullet(bullet);
     });
-  }, [addBullet]);
+    toast({
+      title: "Notes Generated",
+      description: `Added ${bullets.length} bullet points from AI analysis`,
+    });
+  }, [addBullet, toast]);
+
+  const { analyzeContent, isProcessing } = useAINotesGenerator({
+    onBulletsGenerated: handleAIBullets
+  });
+
+  // Collect transcript for AI analysis
+  const processBulletPoint = useCallback((text: string) => {
+    pendingTranscriptRef.current += ' ' + text;
+  }, []);
 
   const {
     isListening: isNotesListening,
     interimTranscript,
     toggleListening: toggleNotesListening
   } = useVoiceRecognition(processBulletPoint);
+
+  // Trigger AI analysis every 10 seconds when capturing
+  useEffect(() => {
+    if (isCapturing) {
+      // Initial analysis after 5 seconds
+      const initialTimeout = setTimeout(() => {
+        if (currentFrame) {
+          analyzeContent(currentFrame, pendingTranscriptRef.current || null);
+          pendingTranscriptRef.current = '';
+        }
+      }, 5000);
+
+      // Regular analysis every 10 seconds
+      analysisIntervalRef.current = setInterval(() => {
+        if (currentFrame) {
+          analyzeContent(currentFrame, pendingTranscriptRef.current || null);
+          pendingTranscriptRef.current = '';
+        }
+      }, 10000);
+
+      return () => {
+        clearTimeout(initialTimeout);
+        if (analysisIntervalRef.current) {
+          clearInterval(analysisIntervalRef.current);
+        }
+      };
+    } else {
+      if (analysisIntervalRef.current) {
+        clearInterval(analysisIntervalRef.current);
+      }
+    }
+  }, [isCapturing, currentFrame, analyzeContent]);
 
   // Handle chat voice input
   const handleChatTranscript = useCallback((text: string) => {
@@ -147,6 +190,7 @@ const Index = () => {
               isListening={isNotesListening}
               interimTranscript={interimTranscript}
               onToggleListening={toggleNotesListening}
+              isAIProcessing={isProcessing}
             />
           </div>
         </div>

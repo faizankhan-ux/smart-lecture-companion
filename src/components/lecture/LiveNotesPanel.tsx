@@ -1,4 +1,4 @@
-import { FileText, Mic, MicOff, Trash2 } from 'lucide-react';
+import { FileText, Mic, MicOff, Trash2, Sparkles, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { BulletPoint } from '@/types/lecture';
 import { cn } from '@/lib/utils';
@@ -9,6 +9,7 @@ interface LiveNotesPanelProps {
   interimTranscript: string;
   onToggleListening: () => void;
   onClearBullets?: () => void;
+  isAIProcessing?: boolean;
 }
 
 export const LiveNotesPanel = ({
@@ -16,7 +17,8 @@ export const LiveNotesPanel = ({
   isListening,
   interimTranscript,
   onToggleListening,
-  onClearBullets
+  onClearBullets,
+  isAIProcessing = false
 }: LiveNotesPanelProps) => {
   return (
     <div className="glass-panel p-4 h-full flex flex-col">
@@ -25,6 +27,12 @@ export const LiveNotesPanel = ({
           <FileText className="w-4 h-4 text-primary" />
           <h3 className="text-sm font-medium text-foreground">Live Notes</h3>
           <span className="text-xs text-muted-foreground">({bullets.length} bullets)</span>
+          {isAIProcessing && (
+            <div className="flex items-center gap-1 text-primary">
+              <Loader2 className="w-3 h-3 animate-spin" />
+              <span className="text-xs">AI analyzing...</span>
+            </div>
+          )}
         </div>
         
         <div className="flex items-center gap-2">
