@@ -47,8 +47,17 @@ const Index = () => {
     });
   }, [addBullet, toast]);
 
+  const handleAIError = useCallback((error: string) => {
+    toast({
+      title: "AI Analysis Error",
+      description: error,
+      variant: "destructive",
+    });
+  }, [toast]);
+
   const { analyzeContent, isProcessing } = useAINotesGenerator({
-    onBulletsGenerated: handleAIBullets
+    onBulletsGenerated: handleAIBullets,
+    onError: handleAIError
   });
 
   // Collect transcript for AI analysis
