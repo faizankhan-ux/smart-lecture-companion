@@ -5,6 +5,51 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+async function callAIWithRetry(messages: any[], apiKey: string, retries = 3): Promise<any> {
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    console.log(`AI call attempt ${attempt}/${retries}`);
+    
+    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "google/gemini-2.5-flash",
+        messages,
+        max_tokens: 500,
+      }),
+    });
+
+    if (response.ok) {
+      return response.json();
+    }
+
+    const errorText = await response.text();
+    console.error(`AI gateway error (attempt ${attempt}):`, response.status, errorText);
+
+    // Retry on 503 (service unavailable) or 429 (rate limit)
+    if ((response.status === 503 || response.status === 429) && attempt < retries) {
+      // Wait before retrying (exponential backoff)
+      await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
+      continue;
+    }
+
+    if (response.status === 429) {
+      throw { status: 429, message: "Rate limit exceeded. Please try again later." };
+    }
+    if (response.status === 402) {
+      throw { status: 402, message: "Usage limit reached. Please add credits." };
+    }
+    if (response.status === 503) {
+      throw { status: 503, message: "AI service temporarily unavailable. Please try again." };
+    }
+    
+    throw { status: response.status, message: `AI gateway error: ${response.status}` };
+  }
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -71,40 +116,7 @@ Example output:
 
     messages.push({ role: "user", content });
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
-        messages,
-        max_tokens: 500,
-      }),
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error("AI gateway error:", response.status, errorText);
-      
-      if (response.status === 429) {
-        return new Response(JSON.stringify({ error: "Rate limit exceeded. Please try again later." }), {
-          status: 429,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
-      }
-      if (response.status === 402) {
-        return new Response(JSON.stringify({ error: "Usage limit reached. Please add credits." }), {
-          status: 402,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
-      }
-      
-      throw new Error(`AI gateway error: ${response.status}`);
-    }
-
-    const data = await response.json();
+    const data = await callAIWithRetry(messages, LOVABLE_API_KEY);
     const aiResponse = data.choices?.[0]?.message?.content || "";
     
     console.log("AI response:", aiResponse);
@@ -135,11 +147,12 @@ Example output:
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
 
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error in analyze-screen function:", error);
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    const status = error.status || 500;
+    const errorMessage = error.message || 'Unknown error';
     return new Response(JSON.stringify({ error: errorMessage }), {
-      status: 500,
+      status,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   }
