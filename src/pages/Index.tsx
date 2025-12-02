@@ -62,21 +62,34 @@ const Index = () => {
     toggleListening: toggleNotesListening
   } = useVoiceRecognition(processBulletPoint);
 
+  // Store currentFrame in a ref to avoid effect re-runs
+  const currentFrameRef = useRef<string | null>(null);
+  
+  useEffect(() => {
+    currentFrameRef.current = currentFrame;
+  }, [currentFrame]);
+
   // Trigger AI analysis every 10 seconds when capturing
   useEffect(() => {
+    console.log("📸 Screen capture state changed:", { isCapturing });
+    
     if (isCapturing) {
       // Initial analysis after 5 seconds
       const initialTimeout = setTimeout(() => {
-        if (currentFrame) {
-          analyzeContent(currentFrame, pendingTranscriptRef.current || null);
+        const frame = currentFrameRef.current;
+        console.log("⏱️ Initial timeout triggered, frame:", !!frame);
+        if (frame) {
+          analyzeContent(frame, pendingTranscriptRef.current || null);
           pendingTranscriptRef.current = '';
         }
       }, 5000);
 
       // Regular analysis every 10 seconds
       analysisIntervalRef.current = setInterval(() => {
-        if (currentFrame) {
-          analyzeContent(currentFrame, pendingTranscriptRef.current || null);
+        const frame = currentFrameRef.current;
+        console.log("⏱️ Interval triggered, frame:", !!frame);
+        if (frame) {
+          analyzeContent(frame, pendingTranscriptRef.current || null);
           pendingTranscriptRef.current = '';
         }
       }, 10000);
@@ -92,7 +105,7 @@ const Index = () => {
         clearInterval(analysisIntervalRef.current);
       }
     }
-  }, [isCapturing, currentFrame, analyzeContent]);
+  }, [isCapturing, analyzeContent]);
 
   // Handle chat voice input
   const handleChatTranscript = useCallback((text: string) => {

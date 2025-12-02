@@ -42,6 +42,7 @@ export const useScreenCapture = () => {
           if (ctx) {
             ctx.drawImage(videoRef.current, 0, 0, 1280, 720);
             const frame = canvasRef.current.toDataURL('image/jpeg', 0.7);
+            console.log("🖼️ Frame captured, length:", frame.length);
             setCurrentFrame(frame);
           }
         }

@@ -13,23 +13,38 @@ export const useAINotesGenerator = ({ onBulletsGenerated }: UseAINotesGeneratorP
 
   const analyzeContent = useCallback(async (screenshot: string | null, transcript: string | null) => {
     // Avoid duplicate processing
-    if (processingRef.current) return;
+    if (processingRef.current) {
+      console.log("Already processing, skipping...");
+      return;
+    }
     
     // Skip if same frame and no new transcript
-    if (screenshot === lastProcessedFrame.current && !transcript) return;
+    if (screenshot === lastProcessedFrame.current && !transcript) {
+      console.log("Same frame, skipping...");
+      return;
+    }
     
-    if (!screenshot && !transcript) return;
+    if (!screenshot && !transcript) {
+      console.log("No content to analyze");
+      return;
+    }
 
     processingRef.current = true;
     setIsProcessing(true);
     setError(null);
 
     try {
-      console.log("Sending to AI for analysis...", { hasScreenshot: !!screenshot, hasTranscript: !!transcript });
+      console.log("🚀 Sending to AI for analysis...", { 
+        hasScreenshot: !!screenshot, 
+        screenshotLength: screenshot?.length,
+        hasTranscript: !!transcript 
+      });
       
       const { data, error: fnError } = await supabase.functions.invoke('analyze-screen', {
         body: { screenshot, transcript }
       });
+      
+      console.log("📥 AI Response:", { data, error: fnError });
 
       if (fnError) {
         console.error("Function error:", fnError);
