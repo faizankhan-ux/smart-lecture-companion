@@ -78,12 +78,12 @@ const Index = () => {
     currentFrameRef.current = currentFrame;
   }, [currentFrame]);
 
-  // Trigger AI analysis every 10 seconds when capturing
+  // Trigger AI analysis every 30 seconds when capturing (to avoid rate limits)
   useEffect(() => {
     console.log("📸 Screen capture state changed:", { isCapturing });
     
     if (isCapturing) {
-      // Initial analysis after 5 seconds
+      // Initial analysis after 10 seconds
       const initialTimeout = setTimeout(() => {
         const frame = currentFrameRef.current;
         console.log("⏱️ Initial timeout triggered, frame:", !!frame);
@@ -91,9 +91,9 @@ const Index = () => {
           analyzeContent(frame, pendingTranscriptRef.current || null);
           pendingTranscriptRef.current = '';
         }
-      }, 5000);
+      }, 10000);
 
-      // Regular analysis every 10 seconds
+      // Regular analysis every 30 seconds to avoid rate limits
       analysisIntervalRef.current = setInterval(() => {
         const frame = currentFrameRef.current;
         console.log("⏱️ Interval triggered, frame:", !!frame);
@@ -101,7 +101,7 @@ const Index = () => {
           analyzeContent(frame, pendingTranscriptRef.current || null);
           pendingTranscriptRef.current = '';
         }
-      }, 10000);
+      }, 30000);
 
       return () => {
         clearTimeout(initialTimeout);
