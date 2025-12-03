@@ -1,73 +1,146 @@
-# Welcome to your Lovable project
+# 📚 Smart Lecture Companion (MVP)
 
-## Project info
+**Smart Lecture Companion** is an AI-powered tool that listens to lectures, captures screen content, and automatically generates concise bullet-point notes, quizzes, and real-time audio/text responses.  
+Built for rapid note-taking and interactive learning.
 
-**URL**: https://lovable.dev/projects/8981474b-d019-4ad5-8bf0-2c5965c70b42
+🔗 **Live Demo:** https://smart-lecture-companion.vercel.app/
 
-## How can I edit this code?
+---
 
-There are several ways of editing your application.
+## 🚀 MVP Features
 
-**Use Lovable**
+### 1. 🔴 Live Screen Capture
+- Browser-based screen sharing  
+- Uses **WebRTC**  
+- Sends frames to backend (approx. 1 frame every 2 seconds)
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/8981474b-d019-4ad5-8bf0-2c5965c70b42) and start prompting.
+### 2. 🎙️ Real-time Speech-to-Text
+- Captures microphone audio  
+- Whisper API / Google Speech API  
+- Converts speech → text in chunks  
+- Stores transcripts temporarily  
 
-Changes made via Lovable will be committed automatically to this repo.
+### 3. 🤖 AI Lecture Understanding
+AI receives both:
+- Screen frame  
+- Transcript  
 
-**Use your preferred IDE**
+AI tasks:
+- Topic extraction  
+- Key points  
+- Short summary (2–3 lines max)  
+- Auto quiz generation  
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+### 4. 📝 Live Notes Display
+UI shows:
+- Current topic  
+- Bullet-point notes *(no mini paragraphs)*  
+- Timestamp  
+- Updates every 10–15 seconds  
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+Example:
 
-Follow these steps:
 
+### 5. 📄 Download Notes as PDF
+- One-click export  
+- Saves current session notes  
+
+### 6. 🧠 Quiz Compartment
+- User selects number of questions  
+- AI generates corresponding quiz items  
+- Based on lecture history and current notes  
+
+### 7. 🔊 Bi-Directional Microphone Conversation
+- User speaks  
+- AI responds with audio or text  
+- Enables interactive lecture assistance  
+
+### 8. 🗃️ History Compartment
+- Stores session-wise notes  
+- Allows users to revisit old lectures  
+
+---
+
+## 🧱 Architecture Overview
+
+### Frontend (React)
+- Screen capture  
+- Mic capture  
+- Live notes display  
+- Quiz UI  
+- PDF export  
+- History view  
+- Audio playback  
+
+### Backend (Flask)
+- Receives frames + transcript  
+- AI summarization (Gemini 2.0 Vision / GPT-4o)  
+- Quiz generation  
+- Sends structured results  
+
+### Database (Firebase)
+- (Optional for MVP)  
+- Stores session notes and history  
+
+---
+
+## 📦 Tech Stack
+
+**Frontend**
+- React  
+- WebRTC  
+- Web Audio API  
+- Tailwind CSS  
+
+**Backend**
+- Flask  
+- Python  
+
+**AI**
+- OpenAI GPT-4o / Gemini 2.0 Vision  
+- Whisper or Google Speech API  
+
+**Storage**
+- Firebase  
+
+**Deployment**
+- Vercel (Frontend)  
+- Render / Railway / EC2 (Backend)  
+
+---
+
+## 🧪 MVP Testing
+
+Test with a **2-minute recorded lecture**.
+
+Check:
+- Screen capture (1 frame/second)  
+- Audio transcription accuracy  
+- Latency < 3 seconds  
+- Notes update frequency  
+- PDF export working  
+
+---
+
+## 🥇 MVP Success Criteria
+
+The MVP is successful if it can:
+
+✔ Watch a shared screen  
+✔ Listen to audio  
+✔ Generate bullet-point notes every few seconds  
+✔ Create quizzes based on lecture content  
+✔ Allow bi-directional mic conversation  
+✔ Respond via audio or text  
+✔ Store session-wise notes  
+✔ Export notes as PDF  
+
+---
+
+## ▶️ Running Locally
+
+### 1. Clone Repo
 ```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+git clone https://github.com/<user>/smart-lecture-companion.git
+cd smart-lecture-companion
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
-```
-
-**Edit a file directly in GitHub**
-
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
-
-**Use GitHub Codespaces**
-
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
-
-## What technologies are used for this project?
-
-This project is built with:
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/8981474b-d019-4ad5-8bf0-2c5965c70b42) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
