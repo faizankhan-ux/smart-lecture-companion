@@ -21,7 +21,7 @@ export const LiveNotesPanel = ({
   isAIProcessing = false
 }: LiveNotesPanelProps) => {
   return (
-    <div className="glass-panel p-4 h-full flex flex-col">
+    <div className="glass-panel p-4 h-full flex flex-col m-5">
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <FileText className="w-4 h-4 text-primary" />

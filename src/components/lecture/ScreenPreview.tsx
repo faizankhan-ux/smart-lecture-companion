@@ -52,7 +52,7 @@ export const ScreenPreview = ({ isCapturing, currentFrame, onStart, onStop }: Sc
           variant={isCapturing ? 'recording' : 'glow'}
           size="lg"
           onClick={isCapturing ? onStop : onStart}
-          className="w-full max-w-xs"
+          className="w-full max-w-xs relative hover:scale-[1.05]"
         >
           {isCapturing ? (
             <>
